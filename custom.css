@@ -1,0 +1,26 @@
+
+
+
+div.input-text{
+	min-width: 100%;
+	min-width: 100px;
+}
+
+div[contentEditable="true"]{
+	outline: 3px dashed rgba(204,204,204,1);/* original color: #CCC;*/
+}
+
+
+
+div[contentEditable="true"]:focus{
+	outline: 3px dashed #0090D2;
+}
+
+span{
+	color: red;
+}
+
+span.fader{
+	color:blue;
+	-webkit-transition-duration: 50s;
+}
