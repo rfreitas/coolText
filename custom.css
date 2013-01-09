@@ -37,7 +37,6 @@ span.fader{
 	-webkit-animation-duration: 5s;
 	-webkit-animation-timing-function:  linear;/*cubic-bezier(0, .89, .20, .87);*/
 
-	/*-webkit-user-modify: read-only;*/
 }
 
 /* https://kuler.adobe.com/#themeID/147748 */
@@ -46,9 +45,24 @@ span.fader{
 			color: #F2B33D;
 			text-shadow: 0 0 1px #F2B33D;
 		}
-	5% 		{ color: #F28A2E }
-	15% 	{ color: #D94D1A }
-	50% 	{ color: #A6290D; }
-	70% 	{ color: rgb(52,53,60) }
-	100% 	{ color: black }
+	5% 	{
+			color: #F28A2E;
+			text-shadow: 0 0 0 #F2B33D;/*necessary to cancel inheritance cases*/
+		}
+	15% {
+			color: #D94D1A;
+			text-shadow: 0 0 0 #F2B33D;/*necessary to cancel inheritance cases*/
+		}
+	50% {
+			color: #A6290D;
+			text-shadow: 0 0 0 #F2B33D;/*necessary to cancel inheritance cases*/
+		}
+	70% {
+			color: rgb(52,53,60);
+			text-shadow: 0 0 0 #F2B33D;/*necessary to cancel inheritance cases*/
+	}
+	100%{
+			color: black;
+			text-shadow: 0 0 0 #F2B33D;/*necessary to cancel inheritance cases*/
+		}
 }

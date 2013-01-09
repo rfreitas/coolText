@@ -34,29 +34,13 @@ $.fn.forEach = function(){
 
 
 function insertNodeAtCaret(node) {
-    if (typeof window.getSelection != "undefined") {
-        var sel = window.getSelection();
-        if (sel.rangeCount) {
-            var range = sel.getRangeAt(0);
-            range.collapse(false);
-            range.insertNode(node);
-            range = range.cloneRange();
-            range.selectNodeContents(node);
-            range.collapse(false);
-            sel.removeAllRanges();
-            sel.addRange(range);
-        }
-    } else if (typeof document.selection != "undefined" && document.selection.type != "Control") {
-        var html = (node.nodeType == 1) ? node.outerHTML : node.data;
-        var id = "marker_" + ("" + Math.random()).slice(2);
-        html += '<span id="' + id + '"></span>';
-        var textRange = document.selection.createRange();
-        textRange.collapse(false);
-        textRange.pasteHTML(html);
-        var markerSpan = document.getElementById(id);
-        textRange.moveToElementText(markerSpan);
-        textRange.select();
-        markerSpan.parentNode.removeChild(markerSpan);
+    var sel = rangy.getSelection();
+    if (sel.rangeCount) {
+        var range = sel.getRangeAt(0);
+        range.collapse(false);
+        range.insertNode(node);
+        range.collapseAfter(node);
+        sel.setSingleRange(range);
     }
 }
 
@@ -64,7 +48,7 @@ $(function(){
 	var input = $(".input");
 
 	var fadeNode = function(node){
-		return $(node).wrap('<span class="fader" />').parent();//wrap returns the wrapped element, not the wrapper
+		return $(node).wrap('<span class="fader" />').parent()[0];//wrap returns the wrapped element, not the wrapper
 	};
 
 
@@ -84,6 +68,7 @@ $(function(){
 			var newText = changedTextNode.data;
 			var oldText = changes.getOldCharacterData(changedTextNode);
 
+			//flesh out the inserted piece of text
 			var lengthCharsInserted = newText.length - oldText.length;
 			if (lengthCharsInserted <= 0) return;
 
@@ -96,13 +81,21 @@ $(function(){
 				i++;
 			}
 
-			
 			var insertedTextNode = changedTextNode.splitText(diffCharIndex);
 			insertedTextNode.splitText(lengthCharsInserted);
 
-			var nodeClone = fadeNode( $(insertedTextNode).clone() )[0];
+
+			var nodeClone = fadeNode( $(insertedTextNode).clone() );
 			
 			insertNodeAtCaret( nodeClone );
+
+			nextRun( function(){
+				nodeClone.addEventListener("animationend", function(){
+					console.log("animationend");
+					$(nodeClone).unwrap();
+				}, false);
+			});
+
 
 			insertedTextNode.data = "";
 			
