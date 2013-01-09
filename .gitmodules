@@ -1,0 +1,6 @@
+[submodule "submodules/jquery-mutation-summary"]
+	path = submodules/jquery-mutation-summary
+	url = https://github.com/joelpurra/jquery-mutation-summary.git
+[submodule "submodules/mutation-summary"]
+	path = submodules/mutation-summary
+	url = https://code.google.com/p/mutation-summary/

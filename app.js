@@ -27,65 +27,87 @@ var timeout = function( routine, miliseconds ){
 	};
 };
 
-var rangeIntersection = function( superSet, subSet ){
 
+$.fn.forEach = function(){
+	return [].forEach.apply( this, arguments );
 };
 
 
+function insertNodeAtCaret(node) {
+    if (typeof window.getSelection != "undefined") {
+        var sel = window.getSelection();
+        if (sel.rangeCount) {
+            var range = sel.getRangeAt(0);
+            range.collapse(false);
+            range.insertNode(node);
+            range = range.cloneRange();
+            range.selectNodeContents(node);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    } else if (typeof document.selection != "undefined" && document.selection.type != "Control") {
+        var html = (node.nodeType == 1) ? node.outerHTML : node.data;
+        var id = "marker_" + ("" + Math.random()).slice(2);
+        html += '<span id="' + id + '"></span>';
+        var textRange = document.selection.createRange();
+        textRange.collapse(false);
+        textRange.pasteHTML(html);
+        var markerSpan = document.getElementById(id);
+        textRange.moveToElementText(markerSpan);
+        textRange.select();
+        markerSpan.parentNode.removeChild(markerSpan);
+    }
+}
+
 $(function(){
 	var input = $(".input");
-	var previousHtml = input.html();
+
+	var fadeNode = function(node){
+		return $(node).wrap('<span class="fader" />').parent();//wrap returns the wrapped element, not the wrapper
+	};
 
 
+	$(".input").mutationSummary("connect", function(summary){
+		var changes = summary[0];
+		window.changes = changes;
 
-	input.on("input", function(event){
-		var html = input.html();
-		if (previousHtml === html || html.length < previousHtml.length ) return;
 
-		var targetNode = $(event.target);
-		console.log(targetNode[0]);
+		changes.added.forEach(function(addedNode){
+			fadeNode(addedNode);
+		});
 
-		console.log("hey");
-		var contents = input.contents();
 
-		var unwrappedElements = window.unwrappedElements = [];
+		changes.characterDataChanged.forEach(function(changedTextNode){
+			window.changedTextNode = changedTextNode;
 
-		contents.each( function(index, value){
-			value = $(value);
-			var contentClass = value.attr("class");
-			if ( contentClass != "fader"){
-				unwrappedElements.push( value[0] );
+			var newText = changedTextNode.data;
+			var oldText = changes.getOldCharacterData(changedTextNode);
+
+			var lengthCharsInserted = newText.length - oldText.length;
+			if (lengthCharsInserted <= 0) return;
+
+			var diffCharIndex = -1;
+			var i = 0;
+			while ( i<newText.length && diffCharIndex === -1){
+				if ( newText[i] !== oldText[i]){
+					diffCharIndex = i;
+				}
+				i++;
 			}
-		});
 
-		console.log( unwrappedElements.map( function(value){ return $(value).text();} ) );
-
-
-		unwrappedElements.forEach( function(node){
-			node = $(node);
-			window.node = node;
-			var nodeText = node.html() || node.text();
-			//BUG: repeated accents are still reseting the caret
-			if ( !nodeText || nodeText == "´" || nodeText == '`') return;
-			console.log("node_text:"+nodeText);
-
-			var newNode = $( '<span class="fader">'+
-				nodeText +
-				'</span>' );
-
-			newNode.insertBefore(node);
 			
-			//node.replaceWith("");//replacing the text node completely resets the caret
+			var insertedTextNode = changedTextNode.splitText(diffCharIndex);
+			insertedTextNode.splitText(lengthCharsInserted);
 
-			//http://stackoverflow.com/a/680447/689223
-			node[0].nodeValue = "";
+			var nodeClone = fadeNode( $(insertedTextNode).clone() )[0];
+			
+			insertNodeAtCaret( nodeClone );
 
-			node.html("");
-
-			newNode.addClass("fader");
+			insertedTextNode.data = "";
 			
 		});
 
-		return false;
-	});
+	}, false, [{ all: true }]);
+
 });

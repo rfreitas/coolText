@@ -37,7 +37,7 @@ span.fader{
 	-webkit-animation-duration: 5s;
 	-webkit-animation-timing-function:  linear;/*cubic-bezier(0, .89, .20, .87);*/
 
-	-webkit-user-modify: read-only;
+	/*-webkit-user-modify: read-only;*/
 }
 
 /* https://kuler.adobe.com/#themeID/147748 */
