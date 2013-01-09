@@ -27,12 +27,23 @@ var timeout = function( routine, miliseconds ){
 	};
 };
 
+var rangeIntersection = function( superSet, subSet ){
+
+};
+
 
 $(function(){
 	var input = $(".input");
 	var previousHtml = input.html();
-	input.on("input", function(){
-		if (previousHtml === input.html() ) return;
+
+
+
+	input.on("input", function(event){
+		var html = input.html();
+		if (previousHtml === html || html.length < previousHtml.length ) return;
+
+		var targetNode = $(event.target);
+		console.log(targetNode[0]);
 
 		console.log("hey");
 		var contents = input.contents();
@@ -47,19 +58,21 @@ $(function(){
 			}
 		});
 
-		console.log( unwrappedElements.map( function(value){ return $(value).text();}) );
+		console.log( unwrappedElements.map( function(value){ return $(value).text();} ) );
 
 
 		unwrappedElements.forEach( function(node){
 			node = $(node);
 			window.node = node;
-			var nodeText = node.text();
+			var nodeText = node.html() || node.text();
 			//BUG: repeated accents are still reseting the caret
 			if ( !nodeText || nodeText == "´" || nodeText == '`') return;
 			console.log("node_text:"+nodeText);
 
+			var newNode = $( '<span class="fader">'+
+				nodeText +
+				'</span>' );
 
-			var newNode = $( '<span contentEditable="false">' + node.text() + '</span>' );
 			newNode.insertBefore(node);
 			
 			//node.replaceWith("");//replacing the text node completely resets the caret
@@ -69,9 +82,10 @@ $(function(){
 
 			node.html("");
 
-			nextRun( function(){
-				newNode.addClass("fader");
-			});
+			newNode.addClass("fader");
+			
 		});
+
+		return false;
 	});
 });
