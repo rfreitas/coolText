@@ -1,14 +1,8 @@
 //JSHint globals
 /*global
-sclock: true,
 window:true,
-sharejs:true,
-ko:true,
 document:true,
-_:true,
-sko:true,
-YT:true,
-cuid:true
+rangy:true,
 */
 //--------------------------------------
 
@@ -44,11 +38,60 @@ function insertNodeAtCaret(node) {
     }
 }
 
+(function($){
+    $.fn.moveTo = function(selector){
+        return this.each(function(){
+            var cl = $(this).clone();
+            $(cl).appendTo(selector);
+            $(this).remove();
+        });
+    };
+})(jQuery);
+
 $(function(){
 	var input = $(".input");
 
+	var sanatizeHtmlColor = function( stringHtml ){
+		return stringHtml.replace(/<\/?(fader)[^>]*>/g,"").//removes fader elements, since they are doing nothing on this case
+			replace(/(color="[^"]*"|color:[^;]*;)(?=[^><]*>)/g, "").//remove color coding, inside styling and as attribute
+			replace(/style="[ ]*"/g, "");//delete empty styles that may end up remaining
+	};
+
 	var fadeNode = function(node){
-		return $(node).wrap('<span class="fader" />').parent()[0];//wrap returns the wrapped element, not the wrapper
+		if ( $(node).text().length === 0) return;//no need to fade without any text in it
+
+		var outNode = $(node).wrap('<fader />').parent()[0];//wrap returns the wrapped element, not the wrapper
+		$(outNode).css({
+			//"-webkit-animation-name":		"cooling-lava",
+			//"-webkit-animation-duration":	"5s"
+		});
+		console.log("html: "+outNode.innerHTML);
+		outNode.innerHTML = sanatizeHtmlColor(outNode.innerHTML);
+		console.log("san_html: "+outNode.innerHTML);
+		return outNode;
+	};
+
+	var fleshOutInsertedTextNode = function(textNode, oldText){
+		var newText = textNode.data;
+
+		//flesh out the inserted piece of text
+		var lengthCharsInserted = newText.length - oldText.length;
+		if (lengthCharsInserted <= 0) return;
+
+		var diffCharIndex = -1;
+		var i = 0;
+		while ( i<newText.length && diffCharIndex === -1){
+			if ( newText[i] !== oldText[i]){
+				diffCharIndex = i;
+			}
+			i++;
+		}
+
+
+		var insertedTextNode = textNode.splitText(diffCharIndex);
+		insertedTextNode.splitText(lengthCharsInserted);
+
+		return insertedTextNode;
 	};
 
 
@@ -65,39 +108,31 @@ $(function(){
 		changes.characterDataChanged.forEach(function(changedTextNode){
 			window.changedTextNode = changedTextNode;
 
-			var newText = changedTextNode.data;
-			var oldText = changes.getOldCharacterData(changedTextNode);
-
-			//flesh out the inserted piece of text
-			var lengthCharsInserted = newText.length - oldText.length;
-			if (lengthCharsInserted <= 0) return;
-
-			var diffCharIndex = -1;
-			var i = 0;
-			while ( i<newText.length && diffCharIndex === -1){
-				if ( newText[i] !== oldText[i]){
-					diffCharIndex = i;
-				}
-				i++;
-			}
-
-			var insertedTextNode = changedTextNode.splitText(diffCharIndex);
-			insertedTextNode.splitText(lengthCharsInserted);
-
+			var insertedTextNode = fleshOutInsertedTextNode(changedTextNode, changes.getOldCharacterData(changedTextNode) );
 
 			var nodeClone = fadeNode( $(insertedTextNode).clone() );
 			
 			insertNodeAtCaret( nodeClone );
+			//console.log(nodeClone);
+			
 
-			nextRun( function(){
-				nodeClone.addEventListener("animationend", function(){
-					console.log("animationend");
-					$(nodeClone).unwrap();
-				}, false);
-			});
+			//$(nodeClone).moveTo( $(nodeClone).parent() );
 
 
 			insertedTextNode.data = "";
+
+			input[0].normalize();
+
+			return;
+			$(nodeClone).on("webkitAnimationEnd", function(){
+				console.log("animationend");
+				if ( nodeClone.parentElement !== input[0] ){
+					$(nodeClone).removeClass("fader");
+					var savedSel = rangy.saveSelection();
+					$(nodeClone).unwrap();
+					rangy.restoreSelection(savedSel);
+				}
+			});
 			
 		});
 

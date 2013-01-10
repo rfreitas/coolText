@@ -9,3 +9,13 @@ unfixed:
 
 	3: inserting element in contentEditable sets the caret before the inserted element
 		Fix: http://stackoverflow.com/questions/4834793/set-caret-position-right-after-the-inserted-element-in-a-contenteditable-div
+
+	4: PERFORMANCE
+		wraping inserted elements create a really deep tree that slows down everything
+		possible solutions are:
+			wrap and make it a sibling instead of a child of the element where he is inserted
+			extra: wait for the animation to end to unwrap
+			FIX: copy paste from the same chat is sanatized. by sanatized what I mean is that fader elements and span elements are removed, but not its content. span elements are removed as well, because when copy pasted an element the currect color is passed as inline style and that element put inside a span element, this conflicts with cooling animation, that uses the CSS selector which has lower priority than inline style.
+
+	5: pasting html code with inline color conflicts with the color cooling animation
+		FIX: using regex the inserted html code if first sanatized of color

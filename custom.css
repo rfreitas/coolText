@@ -28,16 +28,23 @@ div[contentEditable="true"]:focus{
 }
 
 
+span{
+	color: black;
+}
 
-span.fader{
+
+
+
+fader, fader *{
 	/*-webkit-transform: translate3d(0,0,0); attempt to hardware accelerate,
 	but unfortunately color can't be gpued at the moment,
 	as of now the only way to reduce cpu cycls is to lower the animation duration*/
+	
 	-webkit-animation-name: cooling-lava;
 	-webkit-animation-duration: 5s;
-	-webkit-animation-timing-function:  linear;/*cubic-bezier(0, .89, .20, .87);*/
-
+	-webkit-animation-timing-function:  linear;
 }
+
 
 /* https://kuler.adobe.com/#themeID/147748 */
 @-webkit-keyframes cooling-lava { 
