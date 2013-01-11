@@ -78,6 +78,8 @@ var fadeNode = function(node){
 	return outNode;
 };
 
+//be careful, this function effectively changes the data of textNode, since the node gets split
+//in order to return the text node that is in fact new
 var fleshOutInsertedTextNode = function(textNode, oldText){
 	var newText = textNode.data;
 
@@ -100,6 +102,8 @@ var fleshOutInsertedTextNode = function(textNode, oldText){
 
 	var insertedTextNode = sliceTextNode( textNode, diffCharIndex, lengthCharsInserted + diffCharIndex );
 
+	console.log("insertedTextNode");
+	console.log( insertedTextNode && insertedTextNode.data );
 	return insertedTextNode;
 };
 
@@ -161,32 +165,36 @@ $(function(){
 			}
 		});
 
+		var hasTextNodeBeenCreated = function(textNode, getOldCharacterData){
+			//even though mutation summary reports characterDataChanged
+			//it doesn't mean it's an update, a new text node is also reported
+			//the way to make the distinction is by looking if there is a previous value
+			//if it had in fact changed, been update rather than a creation, the previous
+			//and current value would be different
+			return textNode.data === getOldCharacterData(textNode);
+		};
+
 		changes.characterDataChanged.forEach(function(changedTextNode){
-			if ( changes.added.indexOf(changedTextNode) !== -1 ){
-				console.log("node already dealt as added node");
-				return;
-			}
 			console.log("characterDataChanged");
 			console.log(changedTextNode);
 
 			window.changedTextNode = changedTextNode;
 			console.log( changedTextNode ? "" : "changedTextNode is null" );
 
-			var oldText = changes.getOldCharacterData(changedTextNode);
-			var insertedTextNode = fleshOutInsertedTextNode(changedTextNode, oldText );
-
-			console.log("oldText: "+oldText);
-			if (changedTextNode.data!==oldText){
-				//textNode that hasn't changed its data, his actually an added node, at least in chrome it is.
+			var insertedTextNode;//the text node that is really new on the dom
+			if ( hasTextNodeBeenCreated(changedTextNode, changes.getOldCharacterData) ){
 				insertedTextNode = changedTextNode;
 			}
-
+			else{
+				var oldText = changes.getOldCharacterData(changedTextNode);
+				insertedTextNode = fleshOutInsertedTextNode(changedTextNode, oldText );
+			}
+			
 			console.log("insertedTextNode.data:"+ insertedTextNode && insertedTextNode.data);
 			if (!insertedTextNode || !insertedTextNode.data ){
 				$(insertedTextNode).remove();
 				return;
 			}
-
 
 			var nodeClone = fadeNode( $(insertedTextNode).clone()[0] );
 

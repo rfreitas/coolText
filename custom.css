@@ -41,7 +41,7 @@ fader, fader *{
 	as of now the only way to reduce cpu cycls is to lower the animation duration*/
 	
 	-webkit-animation-name: cooling-lava;
-	-webkit-animation-duration: 15s;
+	-webkit-animation-duration: 5s;
 	-webkit-animation-timing-function:  linear;
 }
 
