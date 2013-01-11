@@ -11,14 +11,14 @@ fixed:
 		Fix: http://stackoverflow.com/questions/4834793/set-caret-position-right-after-the-inserted-element-in-a-contenteditable-div
 
 	4: PERFORMANCE
-		wraping inserted elements create a really deep tree that slows down everything
+		wrapping inserted elements create a really deep tree that slows down everything
 		possible solutions are:
 			wrap and make it a sibling instead of a child of the element where he is inserted
 			extra: wait for the animation to end to unwrap
-			FIX: copy paste from the same chat is sanatized. by sanatized what I mean is that fader elements and span elements are removed, but not its content. span elements are removed as well, because when copy pasted an element the currect color is passed as inline style and that element put inside a span element, this conflicts with cooling animation, that uses the CSS selector which has lower priority than inline style.
+			FIX: copy paste from the same chat is sanitized. by sanitized what I mean is that fader elements and span elements are removed, but not its content. span elements are removed as well, because when copy pasted an element the currect color is passed as inline style and that element put inside a span element, this conflicts with cooling animation, that uses the CSS selector which has lower priority than inline style.
 
 	5: pasting html code with inline color conflicts with the color cooling animation
-		FIX: using regex the inserted html code if first sanatized of color
+		FIX: using regex the inserted html code if first sanitized of color
 
 	6: unwrapping a fader creates a reflow on its children, that if faders as well will have their animation reseted.
 		possible solutions:
@@ -44,4 +44,8 @@ fixed:
 			this solution also works because text that is added also fires the charactedData event, and it's there that the text is wrapped(faded)
 
 	8. input sometimes gets deleted
-		FIX: input variable was actually a jquery node and it was being compared against DOM nodes
+		FIX: input variable was actually a jquery node and it was being compared against proper DOM nodes
+
+	9. can't create more than two lines sequenced when there is already text present on the line of creation
+		oddities:
+			for whatever reason, when on the cursor is inside a <fader>, with no children apart from text nodes, a newline creates a div that has a <br> wrapped in a <fader>, that's when it works. when it doesn't work is two faders, father and son, wrapping a <br>

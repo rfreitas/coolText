@@ -150,6 +150,7 @@ $(function(){
 			fadeNode(addedNode);
 		});
 
+
 		changes.removed.forEach(function(removedNode){
 			console.log("removedNode");
 			console.log(removedNode);
@@ -157,15 +158,23 @@ $(function(){
 			//therefore there is no reference to his lost father
 
 			var oldParent = changes.getOldParentNode(removedNode);
+			
+			var oldParentParents = $(oldParent).parentsUntil(input);
 
-			if ($(oldParent).text().length === 0 && oldParent !== input){
+			if ( $(oldParent).is(":empty") && oldParent !== input){
 				$(oldParent).remove();
 			}
-			var emptyParents = $(oldParent).parentsUntil(input).filter(function(){
-				return $(this).text().length === 0;
+
+			oldParentParents.each(function(index, node){
+				if ($(node).is(":empty") && node !== input){
+					$(node).remove();
+				}
 			});
-			emptyParents.remove();
 		});
+
+		$.fn.unshift = function(){
+
+		};
 
 		changes.characterDataChanged.forEach(function(changedTextNode){
 			if ( changes.added.indexOf(changedTextNode) !== -1 ){
