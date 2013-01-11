@@ -154,15 +154,11 @@ $(function(){
 			var oldParent = changes.getOldParentNode(removedNode);
 			var oldParentParents = $(oldParent).parentsUntil(input);
 
-			if ( $(oldParent).is(":empty") && oldParent !== input){
-				$(oldParent).remove();
+			if (oldParent !== input){
+				$(oldParent).add( oldParentParents ).each(function(index, node){
+					if ($(node).is(":empty")) $(node).remove();
+				});
 			}
-
-			oldParentParents.each(function(index, node){
-				if ($(node).is(":empty") && node !== input){
-					$(node).remove();
-				}
-			});
 		});
 
 		changes.characterDataChanged.forEach(function(changedTextNode){
