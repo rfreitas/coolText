@@ -7,26 +7,6 @@ rangy:true,
 //--------------------------------------
 
 
-var nextRun = function(routine){
-	return timeout( routine, 0);
-};
-
-var timeout = function( routine, miliseconds ){
-	var id = window.setTimeout( routine, miliseconds);
-
-	return {
-		cancel: function(){
-			return window.clearTimeout(id);
-		}
-	};
-};
-
-
-$.fn.forEach = function(){
-	return [].forEach.apply( this, arguments );
-};
-
-
 function insertNodeAtCaret(node) {
 	console.log(node);
     var sel = rangy.getSelection();
@@ -39,6 +19,8 @@ function insertNodeAtCaret(node) {
     }
 }
 
+//this function returns a new text node by slicing the previous in place
+//so be careful with it
 var sliceTextNode = function( textNode, start, end){
 	var slicedNode = textNode.splitText(start);
 	slicedNode.splitText( end - start );//trimming the end
@@ -179,7 +161,6 @@ $(function(){
 			console.log(changedTextNode);
 
 			window.changedTextNode = changedTextNode;
-			console.log( changedTextNode ? "" : "changedTextNode is null" );
 
 			var insertedTextNode;//the text node that is really new on the dom
 			if ( hasTextNodeBeenCreated(changedTextNode, changes.getOldCharacterData) ){

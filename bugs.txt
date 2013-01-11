@@ -48,6 +48,9 @@ fixed:
 
 	9. can't create more than two lines sequenced when there is already text present on the line of creation
 		oddities:
-			for whatever reason, when on the cursor is inside a <fader>, with no children apart from text nodes, a newline creates a div that has a <br> wrapped in a <fader>, that's when it works. when it doesn't work is two faders, father and son, wrapping a <br>
+			.for whatever reason, when on the cursor is inside a <fader>, with no children apart from text nodes, a newline creates a div that has a <br> wrapped in a <fader>, that's when it works. when it doesn't work is two faders, father and son, wrapping a <br>
+			.in some cases the entire subtree, where the newline is requested, gets unwrapped of faders, which triggers a reflow and makes the cooling animation behave erratically. it does clean up the tree though
+		suspicion:
+			it seems the problem is where the cursor ends, because the divs apparently are getting created
 
 	10. some new text node where not being wrapped properly, because the changedTextNode was being compared under the assumption that its value hadn't changed, where in fact the node had already by split previously
