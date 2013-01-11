@@ -28,6 +28,7 @@ $.fn.forEach = function(){
 
 
 function insertNodeAtCaret(node) {
+	console.log(node);
     var sel = rangy.getSelection();
     if (sel.rangeCount) {
         var range = sel.getRangeAt(0);
@@ -49,25 +50,33 @@ function insertNodeAtCaret(node) {
 })(jQuery);
 
 $(function(){
-	var input = $(".input");
+	var input = $(".input")[0];
 
-	var sanatizeHtmlColor = function( stringHtml ){
-		return stringHtml.replace(/<\/?(fader)[^>]*>/g,"").//removes fader elements, since they are doing nothing on this case
-			replace(/(color="[^"]*"|color:[^;]*;)(?=[^><]*>)/g, "").//remove color coding, inside styling and as attribute
-			replace(/style="[ ]*"/g, "");//delete empty styles that may end up remaining
+	var sanatizeColor = function( stringHtml ){
+		return stringHtml.replace(/<\/?(fader)[^>]*>/gi,"").//removes fader elements, since css applies color to them, but not its content
+			replace(/(color="[^"]*"|color:[^;]*;)(?=[^><]*>)/gi, "").//remove inline color coding, inside style and as attribute
+			replace(/style="[ ]*"/gi, "");//delete empty styles that may end up remaining
+	};
+
+	var santizeColorInElement = function(node){
+		console.log("node.outterHTML: "+node.outterHTML);
+		$(node).removeAttr("color");
+		if ($(node).attr('style')) $(node).css('color', '');
+		if (node.innerHTML) node.innerHTML = sanatizeColor(node.innerHTML);
 	};
 
 	var fadeNode = function(node){
 		if ( $(node).text().length === 0) return;//no need to fade without any text in it
-
+		console.log("fadeNode");
+		console.log(node);
 		var outNode = $(node).wrap('<fader />').parent()[0];//wrap returns the wrapped element, not the wrapper
 		$(outNode).css({
 			//"-webkit-animation-name":		"cooling-lava",
 			//"-webkit-animation-duration":	"5s"
 		});
-		console.log("html: "+outNode.innerHTML);
-		outNode.innerHTML = sanatizeHtmlColor(outNode.innerHTML);
-		console.log("san_html: "+outNode.innerHTML);
+		//console.log("html: "+outNode.innerHTML);
+		santizeColorInElement(outNode);
+		//console.log("san_html: "+outNode.innerHTML);
 		return outNode;
 	};
 
@@ -86,7 +95,10 @@ $(function(){
 			}
 			i++;
 		}
-
+		console.log("newText:"+newText);
+		console.log("oldText"+oldText);
+		console.log("diffCharIndex:"+diffCharIndex);
+		console.log("lengthCharsInserted:"+lengthCharsInserted);
 
 		var insertedTextNode = textNode.splitText(diffCharIndex);
 		insertedTextNode.splitText(lengthCharsInserted);
@@ -94,48 +106,116 @@ $(function(){
 		return insertedTextNode;
 	};
 
+	var silentMutation = false;
 
-	$(".input").mutationSummary("connect", function(summary){
+	$(input).on("webkitAnimationEnd","fader", function(e){
+		//console.log("animationend");
+		//console.log(this);
+		//BUG: unwrapping will cause reflow of its children, which if still fading will restart their animation
+		//FAILED ATTEMPTS:
+		//	using inline style instead of CSS selectors doesn't work, the reflow still happens
+		//Possible solutions:
+		//	on mutation don't just wrap the inserted node, but make it a sibling of his parent as well
+		return;
+		silentMutation = true;
+		var savedSel = rangy.saveSelection();
+		$(this).contents().unwrap();
+		$(this).remove();
+		input.normalize();
+		rangy.restoreSelection(savedSel);
+		
+	});
+	
+
+	var mutationSummaryHandler = function(summary){
+		if (silentMutation){
+			console.log("SILENT MUTATION!");
+			silentMutation = false;
+			return;
+		}
+		//mutations.disconnect();
+		console.log("MUTATION!");
 		var changes = summary[0];
 		window.changes = changes;
 
 
 		changes.added.forEach(function(addedNode){
+			console.log("added node");
+			console.log(addedNode);
+			if ( $(addedNode).parent().is("fader") && $(addedNode).parent().children().length === 1 ){
+				console.log("already fading");
+				santizeColorInElement(addedNode);
+				return;
+			}
 			fadeNode(addedNode);
 		});
 
+		changes.removed.forEach(function(removedNode){
+			console.log("removedNode");
+			console.log(removedNode);
+			//not possible to do node clean up, because the node is no longer on the tree,
+			//therefore there is no reference to his lost father
 
-		changes.characterDataChanged.forEach(function(changedTextNode){
-			window.changedTextNode = changedTextNode;
+			var oldParent = changes.getOldParentNode(removedNode);
 
-			var insertedTextNode = fleshOutInsertedTextNode(changedTextNode, changes.getOldCharacterData(changedTextNode) );
-
-			var nodeClone = fadeNode( $(insertedTextNode).clone() );
-			
-			insertNodeAtCaret( nodeClone );
-			//console.log(nodeClone);
-			
-
-			//$(nodeClone).moveTo( $(nodeClone).parent() );
-
-
-			insertedTextNode.data = "";
-
-			input[0].normalize();
-
-			return;
-			$(nodeClone).on("webkitAnimationEnd", function(){
-				console.log("animationend");
-				if ( nodeClone.parentElement !== input[0] ){
-					$(nodeClone).removeClass("fader");
-					var savedSel = rangy.saveSelection();
-					$(nodeClone).unwrap();
-					rangy.restoreSelection(savedSel);
-				}
+			if ($(oldParent).text().length === 0 && oldParent !== input){
+				$(oldParent).remove();
+			}
+			var emptyParents = $(oldParent).parentsUntil(input).filter(function(){
+				return $(this).text().length === 0;
 			});
-			
+			emptyParents.remove();
 		});
 
-	}, false, [{ all: true }]);
+		changes.characterDataChanged.forEach(function(changedTextNode){
+			if ( changes.added.indexOf(changedTextNode) !== -1 ){
+				console.log("node already dealt as added node");
+				return;
+			}
+			console.log("characterDataChanged");
+			console.log(changedTextNode);
 
+			window.changedTextNode = changedTextNode;
+			console.log( changedTextNode ? "" : "changedTextNode is null" );
+
+			var oldText = changes.getOldCharacterData(changedTextNode);
+			var insertedTextNode = fleshOutInsertedTextNode(changedTextNode, oldText );
+
+			console.log("oldText: "+oldText);
+			if (changedTextNode.data!==oldText){
+				//textNode that hasn't changed its data, his actually an added node, at least in chrome it is.
+				insertedTextNode = changedTextNode;
+			}
+
+			console.log("insertedTextNode.data:"+ insertedTextNode && insertedTextNode.data);
+			if (!insertedTextNode || !insertedTextNode.data ){
+				$(insertedTextNode).remove();
+				return;
+			}
+
+
+			var nodeClone = fadeNode( $(insertedTextNode).clone()[0] );
+
+			insertNodeAtCaret( nodeClone );
+			
+			/*
+			//$(nodeClone).moveTo( $(nodeClone).parent() );
+			if (nodeClone.parentElement !== input[0]){
+				console.log(nodeClone);
+				var savedSel = rangy.saveSelection();
+				//$(nodeClone).unwrap();//not the way to go, it deletes information, we just want to bump it one level
+				rangy.restoreSelection(savedSel);
+			}*/
+
+			$(insertedTextNode).remove();
+		});
+	};
+
+	var mutations = new MutationSummary({
+		callback: mutationSummaryHandler, // required
+		rootNode: input, // optional, defaults to window.document
+		observeOwnChanges: false,// optional, defaults to false
+		oldPreviousSibling: false,// optional, defaults to false
+		queries: [{ all: true }]
+	});
 });

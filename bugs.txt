@@ -1,4 +1,4 @@
-unfixed:
+fixed:
 
 	2: Text.wholeText or for that matter $(Text).text() of a split text node returns the entire text of the normalized nodes.
 		eg: text -> "lol"
@@ -19,3 +19,29 @@ unfixed:
 
 	5: pasting html code with inline color conflicts with the color cooling animation
 		FIX: using regex the inserted html code if first sanatized of color
+
+	6: unwrapping a fader creates a reflow on its children, that if faders as well will have their animation reseted.
+		possible solutions:
+			1.when wrapping a content with a fader, bump the fading wrapping one level in the tree hierarchy, but still keeping the overall content organization.
+				possible problems:
+					in order to do this the enclosing node of the fader, might have to be split.
+					take a look at this example:
+						<fader>lol<fader id="theFaderWeWantToBump"></fader>pois></fader>
+						in order to bump it we will need to turn it to this:
+							<fader>lol</fader>
+							<fader id="theFaderWeWantToBump"></fader>
+							<fader>pois</fader>
+						this might cause a reflow on what was previously the parent and is now the siblings of the fader we have been discussing
+				pros:
+					the tree grows in breadth, instead of depth. this not only fixes the bug6, but possibly also increases performance
+
+			2.
+
+	7: when wrapping a text node, its siblings (at least its preceding siblings) are firing the mutation summary and reporting themselves as just added and in turn getting an unnecessary wrap that makes tree grow deeper and deeper; it also fires a reflow on that wrapped element.
+		temporary solution:
+			added nodes that have a fader as their parent and have one children don't get wrapped(faded)
+			this fixes most cases, but not all I think
+			this solution also works because text that is added also fires the charactedData event, and it's there that the text is wrapped(faded)
+
+	8. input sometimes gets deleted
+		FIX: input variable was actually a jquery node and it was being compared against DOM nodes

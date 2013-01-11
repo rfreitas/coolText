@@ -41,7 +41,7 @@ fader, fader *{
 	as of now the only way to reduce cpu cycls is to lower the animation duration*/
 	
 	-webkit-animation-name: cooling-lava;
-	-webkit-animation-duration: 5s;
+	-webkit-animation-duration: 15s;
 	-webkit-animation-timing-function:  linear;
 }
 
@@ -54,22 +54,22 @@ fader, fader *{
 		}
 	5% 	{
 			color: #F28A2E;
-			text-shadow: 0 0 0 #F2B33D;/*necessary to cancel inheritance cases*/
+			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
 		}
 	15% {
 			color: #D94D1A;
-			text-shadow: 0 0 0 #F2B33D;/*necessary to cancel inheritance cases*/
+			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
 		}
 	50% {
 			color: #A6290D;
-			text-shadow: 0 0 0 #F2B33D;/*necessary to cancel inheritance cases*/
+			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
 		}
 	70% {
 			color: rgb(52,53,60);
-			text-shadow: 0 0 0 #F2B33D;/*necessary to cancel inheritance cases*/
+			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
 	}
 	100%{
 			color: black;
-			text-shadow: 0 0 0 #F2B33D;/*necessary to cancel inheritance cases*/
+			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
 		}
 }
