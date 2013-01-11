@@ -39,72 +39,72 @@ function insertNodeAtCaret(node) {
     }
 }
 
-(function($){
-    $.fn.moveTo = function(selector){
-        return this.each(function(){
-            var cl = $(this).clone();
-            $(cl).appendTo(selector);
-            $(this).remove();
-        });
-    };
-})(jQuery);
+var sliceTextNode = function( textNode, start, end){
+	var slicedNode = textNode.splitText(start);
+	slicedNode.splitText( end - start );//trimming the end
+	return slicedNode;
+};
+
+var sanatizeColor = function( stringHtml ){
+	return stringHtml.replace(/<\/?(fader)[^>]*>/gi,"").//removes fader elements, since css applies color to them, but not its content
+		replace(/(color="[^"]*"|color:[^;]*;)(?=[^><]*>)/gi, "").//remove inline color coding, inside style and as attribute
+		replace(/style="[ ]*"/gi, "");//delete empty styles that may end up remaining
+};
+
+var sanatizeColorInElementContent = function(node){
+	if (node.innerHTML) node.innerHTML = sanatizeColor(node.innerHTML);
+	return node;
+};
+
+var santizeColorInElement = function(node){
+	console.log("node.outterHTML: "+node.outterHTML);
+	$(node).removeAttr("color");
+	if ($(node).attr('style')) $(node).css('color', '');
+	return sanatizeColorInElementContent(node);
+};
+
+var fadeNode = function(node){
+	if ( $(node).text().length === 0) return;//no need to fade without any text in it
+	console.log("fadeNode");
+	console.log(node);
+	var outNode = $(node).wrap('<fader />').parent()[0];//wrap returns the wrapped element, not the wrapper
+	$(outNode).css({
+		//"-webkit-animation-name":		"cooling-lava",
+		//"-webkit-animation-duration":	"5s"
+	});
+	//console.log("html: "+outNode.innerHTML);
+	santizeColorInElement(outNode);
+	//console.log("san_html: "+outNode.innerHTML);
+	return outNode;
+};
+
+var fleshOutInsertedTextNode = function(textNode, oldText){
+	var newText = textNode.data;
+
+	//flesh out the inserted piece of text
+	var lengthCharsInserted = newText.length - oldText.length;
+	if (lengthCharsInserted <= 0) return;
+
+	var diffCharIndex = -1;
+	var i = 0;
+	while ( i<newText.length && diffCharIndex === -1){
+		if ( newText[i] !== oldText[i]){
+			diffCharIndex = i;
+		}
+		i++;
+	}
+	console.log("newText:"+newText);
+	console.log("oldText"+oldText);
+	console.log("diffCharIndex:"+diffCharIndex);
+	console.log("lengthCharsInserted:"+lengthCharsInserted);
+
+	var insertedTextNode = sliceTextNode( textNode, diffCharIndex, lengthCharsInserted + diffCharIndex );
+
+	return insertedTextNode;
+};
 
 $(function(){
 	var input = $(".input")[0];
-
-	var sanatizeColor = function( stringHtml ){
-		return stringHtml.replace(/<\/?(fader)[^>]*>/gi,"").//removes fader elements, since css applies color to them, but not its content
-			replace(/(color="[^"]*"|color:[^;]*;)(?=[^><]*>)/gi, "").//remove inline color coding, inside style and as attribute
-			replace(/style="[ ]*"/gi, "");//delete empty styles that may end up remaining
-	};
-
-	var santizeColorInElement = function(node){
-		console.log("node.outterHTML: "+node.outterHTML);
-		$(node).removeAttr("color");
-		if ($(node).attr('style')) $(node).css('color', '');
-		if (node.innerHTML) node.innerHTML = sanatizeColor(node.innerHTML);
-	};
-
-	var fadeNode = function(node){
-		if ( $(node).text().length === 0) return;//no need to fade without any text in it
-		console.log("fadeNode");
-		console.log(node);
-		var outNode = $(node).wrap('<fader />').parent()[0];//wrap returns the wrapped element, not the wrapper
-		$(outNode).css({
-			//"-webkit-animation-name":		"cooling-lava",
-			//"-webkit-animation-duration":	"5s"
-		});
-		//console.log("html: "+outNode.innerHTML);
-		santizeColorInElement(outNode);
-		//console.log("san_html: "+outNode.innerHTML);
-		return outNode;
-	};
-
-	var fleshOutInsertedTextNode = function(textNode, oldText){
-		var newText = textNode.data;
-
-		//flesh out the inserted piece of text
-		var lengthCharsInserted = newText.length - oldText.length;
-		if (lengthCharsInserted <= 0) return;
-
-		var diffCharIndex = -1;
-		var i = 0;
-		while ( i<newText.length && diffCharIndex === -1){
-			if ( newText[i] !== oldText[i]){
-				diffCharIndex = i;
-			}
-			i++;
-		}
-		console.log("newText:"+newText);
-		console.log("oldText"+oldText);
-		console.log("diffCharIndex:"+diffCharIndex);
-		console.log("lengthCharsInserted:"+lengthCharsInserted);
-
-		var insertedTextNode = textNode.splitText(diffCharIndex);
-		insertedTextNode.splitText(lengthCharsInserted);
-
-		return insertedTextNode;
-	};
 
 	var silentMutation = false;
 
@@ -128,12 +128,6 @@ $(function(){
 	
 
 	var mutationSummaryHandler = function(summary){
-		if (silentMutation){
-			console.log("SILENT MUTATION!");
-			silentMutation = false;
-			return;
-		}
-		//mutations.disconnect();
 		console.log("MUTATION!");
 		var changes = summary[0];
 		window.changes = changes;
@@ -158,7 +152,6 @@ $(function(){
 			//therefore there is no reference to his lost father
 
 			var oldParent = changes.getOldParentNode(removedNode);
-			
 			var oldParentParents = $(oldParent).parentsUntil(input);
 
 			if ( $(oldParent).is(":empty") && oldParent !== input){
@@ -171,10 +164,6 @@ $(function(){
 				}
 			});
 		});
-
-		$.fn.unshift = function(){
-
-		};
 
 		changes.characterDataChanged.forEach(function(changedTextNode){
 			if ( changes.added.indexOf(changedTextNode) !== -1 ){
@@ -206,15 +195,6 @@ $(function(){
 			var nodeClone = fadeNode( $(insertedTextNode).clone()[0] );
 
 			insertNodeAtCaret( nodeClone );
-			
-			/*
-			//$(nodeClone).moveTo( $(nodeClone).parent() );
-			if (nodeClone.parentElement !== input[0]){
-				console.log(nodeClone);
-				var savedSel = rangy.saveSelection();
-				//$(nodeClone).unwrap();//not the way to go, it deletes information, we just want to bump it one level
-				rangy.restoreSelection(savedSel);
-			}*/
 
 			$(insertedTextNode).remove();
 		});
