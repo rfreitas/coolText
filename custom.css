@@ -14,24 +14,20 @@ div.input{
 
 	width: 96%;
 	height: 94%;
-}
+	font-size: 40px;
+	font-family: arial;
 
-div[contentEditable="true"]{
+	line-height: 40px;
 	outline: 3px dashed rgba(204,204,204,1);/* original color: #CCC;*/
-	padding: 5px;
+	padding: 3%;
+	-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+	overflow: scroll;
 }
 
 
-
-div[contentEditable="true"]:focus{
+div.input:focus{
 	outline: 3px dashed black;
 }
-
-
-span{
-	color: black;
-}
-
 
 
 
@@ -39,7 +35,8 @@ fader, fader *{
 	/*-webkit-transform: translate3d(0,0,0); attempt to hardware accelerate,
 	but unfortunately color can't be gpued at the moment,
 	as of now the only way to reduce cpu cycls is to lower the animation duration*/
-	
+	-webkit-transform: scale(1.5);
+
 	-webkit-animation-name: cooling-lava;
 	-webkit-animation-duration: 5s;
 	-webkit-animation-timing-function:  linear;
@@ -50,12 +47,17 @@ fader, fader *{
 @-webkit-keyframes cooling-lava { 
 	0%  {
 			color: #F2B33D;
-			text-shadow: 0 0 1px #F2B33D;
+			text-shadow: 0 0 2px #F2B33D;
+			-webkit-transform: scale(1.5);
 		}
-	5% 	{
+	10% 	{
 			color: #F28A2E;
 			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
+			-webkit-transform: scale(1);
 		}
+	
+
+
 	15% {
 			color: #D94D1A;
 			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
