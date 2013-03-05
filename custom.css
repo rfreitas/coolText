@@ -24,18 +24,21 @@ div.input{
 	overflow: scroll;
 }
 
-
 div.input:focus{
 	outline: 3px dashed black;
 }
 
 
-
-fader, fader *{
+/*
+** Text effect code
+*/
+span.inserted{
 	/*-webkit-transform: translate3d(0,0,0); attempt to hardware accelerate,
 	but unfortunately color can't be gpued at the moment,
 	as of now the only way to reduce cpu cycls is to lower the animation duration*/
-	-webkit-transform: scale(1.5);
+	-webkit-transform: scale(1);
+	position: relative;
+	display: inline-block;
 
 	-webkit-animation-name: cooling-lava;
 	-webkit-animation-duration: 5s;
@@ -48,7 +51,8 @@ fader, fader *{
 	0%  {
 			color: #F2B33D;
 			text-shadow: 0 0 2px #F2B33D;
-			-webkit-transform: scale(1.5);
+			-webkit-transform: scale(1.2);
+			
 		}
 	10% 	{
 			color: #F28A2E;
