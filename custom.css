@@ -17,7 +17,7 @@ div.input{
 	font-size: 40px;
 	font-family: arial;
 
-	line-height: 40px;
+	line-height: 44px;
 	outline: 3px dashed rgba(204,204,204,1);/* original color: #CCC;*/
 	padding: 3%;
 	-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
@@ -28,40 +28,48 @@ div.input:focus{
 	outline: 3px dashed black;
 }
 
+.input div.linebreak {
+	display: inline;
+}
+
 
 /*
 ** Text effect code
 */
+
 span.inserted{
-	/*-webkit-transform: translate3d(0,0,0); attempt to hardware accelerate,
-	but unfortunately color can't be gpued at the moment,
-	as of now the only way to reduce cpu cycls is to lower the animation duration*/
-	-webkit-transform: scale(1);
 	position: relative;
 	display: inline-block;
 
+	text-shadow: 0 0 0 transparent;
+
+
+	transform: scale(1);
+	-webkit-transform: scale(1);
+	
+
 	-webkit-animation-name: cooling-lava;
 	-webkit-animation-duration: 5s;
-	-webkit-animation-timing-function:  linear;
+	-webkit-animation-timing-function: linear;
+
+	animation-name: cooling-lava;
+	animation-duration: 5s;
+	animation-timing-function: linear;
 }
 
 
 /* https://kuler.adobe.com/#themeID/147748 */
-@-webkit-keyframes cooling-lava { 
+@keyframes cooling-lava { 
 	0%  {
 			color: #F2B33D;
 			text-shadow: 0 0 2px #F2B33D;
-			-webkit-transform: scale(1.2);
-			
+			transform: scale(1.2);
 		}
-	10% 	{
-			color: #F28A2E;
-			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
-			-webkit-transform: scale(1);
-		}
-	
-
-
+	10% {
+		color: #F28A2E;
+		text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
+		transform: scale(1);
+	}
 	15% {
 			color: #D94D1A;
 			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
@@ -76,6 +84,42 @@ span.inserted{
 	}
 	100%{
 			color: black;
+			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
+		}
+}
+
+@-webkit-keyframes cooling-lava { 
+	0%  {
+			/*color: #F2B33D;*/
+			color: rgb(242,	234, 97	);	
+			text-shadow: 0 0 2px #F2B33D;
+			-webkit-transform: scale(1.2) ;
+		}
+	6% {
+		color:rgb(245,	134,	53	);
+
+		text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
+		-webkit-transform: scale(1.17);
+	}
+	15% {
+			color: rgb(221,	50,	13	);
+			-webkit-transform: scale(1.12);
+			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
+		}
+	50% {
+			color: rgb(109,	22,	8);
+			-webkit-transform: scale(1.08);
+			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
+		}
+	70% {
+			color: rgb(36,	35,	36	);
+			-webkit-transform: scale(1);
+			
+			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
+	}
+	100%{
+			color: rgb(13,	13,	13	);
+			-webkit-transform: scale(1);
 			text-shadow: 0 0 0 transparent;/*necessary to cancel inheritance cases*/
 		}
 }

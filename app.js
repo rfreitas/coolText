@@ -10,8 +10,15 @@ document:true,
         $(el).on("keypress paste", function(){out.inputEventsHandler.apply(out,arguments);});
     };
 
+    out.rangeEndContainer = function(){
+        var sel = window.getSelection();
+        var range = sel.getRangeAt(0);
+        return range.endContainer;
+    };
+
     //ref: http://stackoverflow.com/a/6691294/689223
     out.insertNodeAtCaret = function(node) {
+        console.log("\n");
         var sel, range;
         if (window.getSelection) {
             // IE9 and non-IE
@@ -20,25 +27,39 @@ document:true,
                 range = sel.getRangeAt(0);
                 range.deleteContents();
 
-                var containerNode = $(range.endContainer).parent();
+                var containerNode = $(range.endContainer).closest(".inserted");
                 console.log("containerNode");
                 console.log(containerNode[0]);
-
-                //ref: https://developer.mozilla.org/en-US/docs/DOM/range
-                if( $(containerNode).is("div.input") || $(containerNode).children().is("div.input"))
-                    range.insertNode(node);
-                else
-                    $(containerNode).after(node);
-                //range.insertNode(node);
+                console.log(range.endOffset);
 
                 // Preserve the selection
-                if (node) {
-                    range = range.cloneRange();
-                    range.setStartAfter(node);
-                    range.collapse(true);
-                    sel.removeAllRanges();
-                    sel.addRange(range);
+                var preserveSelection = function(){
+                    console.log("node");
+                    console.log(node);
+                    if (node) {
+                        range = range.cloneRange();
+                        range.setStartAfter(node);
+                        range.collapse(true);
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                };
+
+                //ref: https://developer.mozilla.org/en-US/docs/DOM/range
+                if( !containerNode.length){
+                    range.insertNode(node);
                 }
+                else if (range.endOffset === 0 && containerNode.text().length > 0){//&& containerNode.text().length > 0){
+                    node = $(node).insertBefore(containerNode)[0];
+                    console.log("insert previously");
+                }
+                else{
+                    node = $(node).insertAfter(containerNode)[0];
+                    console.log("insert after");
+                }
+                preserveSelection();
+                node.scrollIntoView(true);
+                return node;
             }
         } else if (document.selection && document.selection.type != "Control") {
             // IE < 9
@@ -56,6 +77,7 @@ document:true,
     };
 
     out.generateNode = function (innerHTML){
+        innerHTML = innerHTML || "";
         var el = document.createElement("span");
         el.innerHTML = innerHTML;
         el.classList.add("inserted");
@@ -70,18 +92,42 @@ document:true,
         return String.fromCharCode(e.which);
     };
 
+    out.newLineHandler = function(e){
+        var node1 = $("<br>")[0];
+        node1 = this.insertNodeAtCaret( node1 );
+        var node2 = this.insertNodeAtCaret( $("<br>")[0] );
+        $(node1).remove();
+        e.preventDefault();
+    };
+
+    //ref:http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+    out.isNewLine = function(e){
+        return e.which == 13;
+    };
+
+    out.isArrowKey = function(e){
+        return (e.charCode <= 40 && e.charCode >= 37) || e.charCode === 0/*firefox*/;
+    };
+
     out.inputEventsHandler = function(e){
         var c;
+        console.log("which key: "+e.which);
+        console.log(e);
+        if (e.metaKey || e.ctrKey) return;//in firefox keypress also captures commands like: ctr+a, ctr+c, ctr+v (cmd also included for MacOS)
+
         if (e.type === "paste"){
             c = this.pasteHandler(e);
         }
         else{
             c = this.keypressHandler(e);
         }
+        if (this.isNewLine(e)){
+           c = this.newLineHandler(e);
+        }
 
-        if (c && c!==" " && e.charCode !== 13/*new line ref:http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes*/){
+        if (c && c!==" " && !this.isArrowKey(e) ){
             var node = out.generateNode(c);
-            this.insertNodeAtCaret( node );
+            node = this.insertNodeAtCaret( node );
             e.preventDefault();
         }
     };
