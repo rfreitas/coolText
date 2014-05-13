@@ -85,7 +85,7 @@ document:true,
     };
 
     out.pasteHandler = function(e){
-        return this.getClipboardData(e.originalEvent);
+        var data = this.getClipboardData(e.originalEvent);
     };
 
     out.keypressHandler = function(e){
@@ -124,6 +124,7 @@ document:true,
         if (this.isNewLine(e)){
            c = this.newLineHandler(e);
         }
+        console.log("input:"+c);
 
         if (c && c!==" " && !this.isArrowKey(e) ){
             var node = out.generateNode(c);

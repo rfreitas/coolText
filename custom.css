@@ -43,10 +43,8 @@ span.inserted{
 
 	text-shadow: 0 0 0 transparent;
 
-
 	transform: scale(1);
 	-webkit-transform: scale(1);
-	
 
 	-webkit-animation-name: cooling-lava;
 	-webkit-animation-duration: 5s;
